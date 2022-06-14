@@ -1,0 +1,201 @@
+<html>
+
+<head>
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Last-Modified" content="0">
+    <meta http-equiv="Cache-Control" content="no-cache, mustrevalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <style>
+        .center {
+            margin: auto;
+            width: 300px;
+            border: 1px dashed gray;
+            padding: 2px;
+        }
+
+        #homeBtn:active {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="center">
+        <img width="300" src="http://localhost:12345" />
+        <button center class="center" id="homeBtn">HOME</button>
+    </div>
+
+    <script>
+        const udid = "50-7a-c5-67-c4-a4";
+        const socket = new WebSocket('ws://localhost:9001');
+        var isReady = false
+        var isDragging = false
+        var isMouseDown = false
+
+        var LOCK = false
+
+        let container = document.querySelector('img');
+        container.style.cursor = 'none'
+        let homeBtn = document.getElementById('homeBtn');
+
+        homeBtn.onclick = () => {
+            if (isReady) {
+                socket.send('R 0xA1 0x04 0x04 0x00|0xA1 0x04 0x00 0x00')
+            }
+        }
+
+        const doSendMouse = (button, x, y) => {
+            if (isReady) {
+                let _x = x < 0 ? 256 + x : x
+                let _y = y < 0 ? 256 + y : y
+
+                socket.send(`M ${button} ${_x} ${_y} 00`)
+            }
+        }
+
+        const doClearMouse = (button, x, y) => {
+            if (isReady) {
+
+                socket.send(`M 0 0 0`)
+            }
+        }
+
+        const doSendScroll = (x, y) => {
+            if (isReady) {
+                socket.send(`M 00 00 00 ${y > 0 ? 1 : 255} ${x > 0 ? 1 : 255}`)
+            }
+        }
+
+        var mouseHoldDown = null;
+
+        container.onmousedown = (e) => {
+            if (!isReady) {
+                return
+            }
+            isMouseDown = true
+
+            if (isDragging) {
+                return
+            }
+
+            socket?.send(`M 1 0 0`)
+
+            mouseHoldDown = setTimeout(() => {
+                doClearMouse()
+                mouseHoldDown = null;
+            }, 500);
+
+        }
+
+
+        container.onmouseup = () => {
+            if (!isReady) {
+                return
+            }
+
+            clearTimeout(mouseHoldDown);
+
+            doClearMouse()
+
+            isMouseDown = false
+
+            isDragging = false
+            isTouchUp = true
+            isTouchDown = false
+        }
+
+        let throttleTimer;
+
+        const throttle = (callback, time) => {
+            if (throttleTimer) return;
+            throttleTimer = true;
+            setTimeout(() => {
+                callback();
+                throttleTimer = false;
+            }, time);
+        }
+
+        container.ondragstart = (e) => {
+            e.preventDefault();
+        }
+
+        container.onmousemove = (e) => {
+            var rect = e.target.getBoundingClientRect();
+            var x = e.clientX - rect.left; //x position within the element.
+            var y = e.clientY - rect.top;  //y position within the element.
+
+            if (isMouseDown) {
+                isDragging = true
+            }
+
+            clearTimeout(mouseHoldDown);
+            mouseHoldDown = null;
+
+
+            throttle(() => {
+
+                console.log(e.movementX, e.movementY)
+
+                doSendMouse(isDragging ? 1 : 0, e.movementX != 0 ? e.movementX < 0
+                    ? isDragging ? 0xEE : 0xF4 : isDragging ? 18 : 12 : 0, e.movementY != 0
+                    ? e.movementY < 0 ? isDragging ? 0xEE : 0xF4 : isDragging ? 18 : 12 : 0)
+            }, 20)
+
+
+        }
+
+        function doScroll(e) {
+
+            console.log(`x:${e.deltaX} y:${e.deltaY}`);
+
+            throttle(() => {
+                doSendScroll(e.deltaX > 0 ? 1 : -1, e.deltaY > 0 ? 1 : -1)
+            }, 30)
+
+            e.preventDefault(); // disable the actual scrolling
+        }
+        container.addEventListener("wheel", doScroll, false);
+
+        //Begin: Websocket stuff
+        socket.addEventListener('open', function (event) {
+            console.log("OPENED")
+            socket.send('AUTH X')
+        });
+
+        socket.addEventListener('close', function (event) {
+            isReady = false
+            console.log('CLOSED')
+        });
+
+        socket.addEventListener('message', function (event) {
+            let text = event.data;
+
+            let code = parseInt(text.split(' ')[0])
+            let command = text.split(' ')[1]
+
+            if (code != 200) {
+                console.log('NON 200 CODE RECEIVED', text)
+                return
+            }
+
+            switch (command) {
+                case 'AUTH':
+                    socket.send("C " + udid)
+
+
+                    break;
+                case 'C':
+                    //connection was a success
+                    isReady = true
+                    break;
+                default:
+                    console.log(command)
+
+            }
+        });
+     //End: Websocket stuff
+    </script>
+</body>
+
+</html>
