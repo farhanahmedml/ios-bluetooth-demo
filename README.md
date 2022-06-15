@@ -5,7 +5,6 @@ Bluetooth IOS Control Demo (HTML Side)
 Download binary from [repo releases section](https://github.com/farhanahmedml/ios-bluetooth-demo/releases)
 
 ```
-Download binary from repo releases section
 Start imirror 
 cd into binary folder
 example: ./imirror stream -d <UDID> -p <PORT> -s <SIZE ie 360x775>
