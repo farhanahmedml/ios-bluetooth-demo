@@ -17,6 +17,10 @@
             background-color: red;
             color: white;
         }
+
+        #speedSlider {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -24,6 +28,7 @@
     <div class="center">
         <img width="300" src="http://localhost:12345" />
         <button center class="center" id="homeBtn">HOME</button>
+        <input type="range" min="12" max="32" value="12" id="speedSlider">
     </div>
 
     <script>
@@ -36,9 +41,9 @@
         var LOCK = false
 
         let container = document.querySelector('img');
-        container.style.cursor = 'none'
+        document.querySelector('img').style.cursor = 'none'
         let homeBtn = document.getElementById('homeBtn');
-
+        let speedSlider = document.querySelector("#speedSlider")
         homeBtn.onclick = () => {
             if (isReady) {
                 socket.send('R 0xA1 0x04 0x04 0x00|0xA1 0x04 0x00 0x00')
@@ -137,9 +142,13 @@
 
                 console.log(e.movementX, e.movementY)
 
+                document.querySelector("#speedSlider")
+                let speed = parseInt(speedSlider.value)
+                let dragSpeed = speed + 6
+
                 doSendMouse(isDragging ? 1 : 0, e.movementX != 0 ? e.movementX < 0
-                    ? isDragging ? 0xEE : 0xF4 : isDragging ? 18 : 12 : 0, e.movementY != 0
-                    ? e.movementY < 0 ? isDragging ? 0xEE : 0xF4 : isDragging ? 18 : 12 : 0)
+                    ? isDragging ? -dragSpeed : -speed : isDragging ? dragSpeed : speed : 0, e.movementY != 0
+                    ? e.movementY < 0 ? isDragging ? -dragSpeed : -speed : isDragging ? dragSpeed : speed : 0)
             }, 20)
 
 
