@@ -4,8 +4,10 @@ Bluetooth IOS Control Demo (HTML Side)
 # Instructions 
 
 ```
+Download binary from repo releases section
 Start imirror 
-example: imirror stream -d <UDID> -p <PORT> -s <SIZE ie 360x775>
+cd into binary folder
+example: ./imirror stream -d <UDID> -p <PORT> -s <SIZE ie 360x775>
 
 Start deviceremotecontrol 
 
