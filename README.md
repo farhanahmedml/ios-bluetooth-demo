@@ -2,6 +2,7 @@
 Bluetooth IOS Control Demo (HTML Side)
 
 # Instructions 
+Download binary from [repo releases section](https://github.com/farhanahmedml/ios-bluetooth-demo/releases)
 
 ```
 Download binary from repo releases section
