@@ -32,12 +32,20 @@
         #cursor {
             display: flex;
         }
+        #playerContainer {
+            background-color: rgb(204, 236, 246); 
+            border-radius: 12px ;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div>
+        <div id="playerContainer">
             <img id="player" width="300" src="http://localhost:12345" />
         </div>
         <div id="controls">
@@ -143,9 +151,17 @@
             "F11": 103,
             "F12": 111
         }
+        let player = document.querySelector('#player')
+        let container = player?.parentElement ?? player;
 
-        let container = document.querySelector('#player');
-        container.style.cursor = 'none'
+        document.onreadystatechange = function () {
+            var state = document.readyState;
+            if (state == 'complete') {
+                container.style.width = player.clientHeight + "px";
+                container.style.cursor = 'none'
+            }
+        };
+        
         let homeBtn = document.getElementById('homeBtn');
         let speedSlider = document.querySelector("#speedSlider")
         homeBtn.onclick = () => {
@@ -179,32 +195,32 @@
 
         var mouseHoldDown = null;
 
-        document.addEventListener('keydown',(e)=> {
+        document.addEventListener('keydown', (e) => {
 
             console.log(e)
 
             modifier = null
-            if(e.shiftKey) {
+            if (e.shiftKey) {
                 modifier = "SHFT"
-            }else if (e.ctrlKey) {
+            } else if (e.ctrlKey) {
                 modifier = "CTL"
-            }else if (e.altKey) {
+            } else if (e.altKey) {
                 modifier = "OPT"
-            }else if (e.key == "Meta") {
+            } else if (e.key == "Meta") {
                 modifier = "CMD"
-            }else if (e.getModifierState("CapsLock")) {
+            } else if (e.getModifierState("CapsLock")) {
                 modifier = "CAPS"
             }
 
-            if(modifier) {
+            if (modifier) {
                 socket.send(`K ${modifier}+${keyboardMap?.[e.code] ?? -1}`)
-            }else {
+            } else {
                 socket.send(`K ${keyboardMap?.[e.code] ?? -1}`)
             }
 
         })
 
-        document.addEventListener('keyup',(e)=> {
+        document.addEventListener('keyup', (e) => {
             socket.send(`K -1`)
         })
 
